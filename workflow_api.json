@@ -1,0 +1,194 @@
+{
+  "35": {
+    "inputs": {
+      "ckpt_name": "SVD/svd_xt.safetensors"
+    },
+    "class_type": "ImageOnlyCheckpointLoader",
+    "_meta": {
+      "title": "Image Only Checkpoint Loader (img2vid model)"
+    }
+  },
+  "37": {
+    "inputs": {
+      "min_cfg": 1,
+      "model": [
+        "35",
+        0
+      ]
+    },
+    "class_type": "VideoLinearCFGGuidance",
+    "_meta": {
+      "title": "VideoLinearCFGGuidance"
+    }
+  },
+  "38": {
+    "inputs": {
+      "width": [
+        "46",
+        0
+      ],
+      "height": [
+        "46",
+        1
+      ],
+      "video_frames": 25,
+      "motion_bucket_id": 30,
+      "fps": [
+        "113",
+        2
+      ],
+      "augmentation_level": 0.03,
+      "clip_vision": [
+        "35",
+        1
+      ],
+      "init_image": [
+        "116",
+        0
+      ],
+      "vae": [
+        "35",
+        2
+      ]
+    },
+    "class_type": "SVD_img2vid_Conditioning",
+    "_meta": {
+      "title": "SVD_img2vid_Conditioning"
+    }
+  },
+  "39": {
+    "inputs": {
+      "seed": [
+        "44",
+        0
+      ],
+      "steps": 30,
+      "cfg": 2.5,
+      "sampler_name": "dpmpp_2m_sde",
+      "scheduler": "karras",
+      "denoise": 1,
+      "model": [
+        "37",
+        0
+      ],
+      "positive": [
+        "38",
+        0
+      ],
+      "negative": [
+        "38",
+        1
+      ],
+      "latent_image": [
+        "38",
+        2
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "40": {
+    "inputs": {
+      "samples": [
+        "39",
+        0
+      ],
+      "vae": [
+        "35",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "44": {
+    "inputs": {
+      "seed": 58329597258652
+    },
+    "class_type": "Seed (rgthree)",
+    "_meta": {
+      "title": "Seed (rgthree)"
+    }
+  },
+  "46": {
+    "inputs": {
+      "image": [
+        "116",
+        0
+      ]
+    },
+    "class_type": "GetImageSize+",
+    "_meta": {
+      "title": "🔧 Get Image Size"
+    }
+  },
+  "80": {
+    "inputs": {
+      "model_name": "codeformer-v0.1.0.pth"
+    },
+    "class_type": "FaceRestoreModelLoader",
+    "_meta": {
+      "title": "FaceRestoreModelLoader"
+    }
+  },
+  "105": {
+    "inputs": {
+      "facedetection": "retinaface_resnet50",
+      "codeformer_fidelity": 0.5,
+      "facerestore_model": [
+        "80",
+        0
+      ],
+      "image": [
+        "40",
+        0
+      ]
+    },
+    "class_type": "FaceRestoreCFWithModel",
+    "_meta": {
+      "title": "FaceRestoreCFWithModel"
+    }
+  },
+  "106": {
+    "inputs": {
+      "frame_rate": 12,
+      "loop_count": 0,
+      "filename_prefix": "SVD-Restore",
+      "format": "image/gif",
+      "pingpong": false,
+      "save_output": true,
+      "images": [
+        "105",
+        0
+      ]
+    },
+    "class_type": "VHS_VideoCombine",
+    "_meta": {
+      "title": "Video Combine 🎥🅥🅗🅢"
+    }
+  },
+  "113": {
+    "inputs": {
+      "number_type": "integer",
+      "number": 6
+    },
+    "class_type": "Constant Number",
+    "_meta": {
+      "title": "Constant Number"
+    }
+  },
+  "116": {
+    "inputs": {
+      "image": "image (18).png",
+      "upload": "image"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  }
+}
