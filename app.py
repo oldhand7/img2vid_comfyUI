@@ -12,7 +12,9 @@ import os
 import asyncio
 import time
 from starlette.background import BackgroundTasks
-
+import uuid
+import datetime
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 origins = ["*"]
@@ -25,9 +27,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.mount("/files", StaticFiles(directory='/home/administrator/ComfyUI/output/'), name="files")
 
 class GifRequest(BaseModel):
-  request_id: str
+  
   selfie_base64: str
 
 
@@ -41,7 +44,9 @@ def queue_prompt(prompt):
     p = {"prompt": prompt}
     data = json.dumps(p).encode('utf-8')
     req =  request.Request("http://127.0.0.1:7860/prompt", data=data)
-    request.urlopen(req)
+    print("req --------> ", req)
+    result = request.urlopen(req)
+
     
     
 async def check_done(request_id, timeout=360):
@@ -52,9 +57,9 @@ async def check_done(request_id, timeout=360):
         if await asyncio.to_thread(os.path.exists, result_path):
             return True
 
-        # Check if timeout has been reached
-        if time.time() - start_time > timeout:
-            return False
+        # # Check if timeout has been reached
+        # if time.time() - start_time > timeout:
+        #     return False
 
         # Non-blocking delay to avoid busy waiting
         await asyncio.sleep(0.1)
@@ -76,7 +81,7 @@ async def process_image(selfie_img_path, request_id):
     if not file_exists:
         # File not found within timeout, raise an HTTPException
         raise HTTPException(status_code=408, detail="Request timed out. File not found.")
-      
+    print("file exist")
     return os.path.join("/home/administrator/ComfyUI/output", f"{request_id}_00001.gif")
         
         
@@ -89,16 +94,22 @@ async def generate_gif(gif_request: GifRequest, background_tasks: BackgroundTask
   # try:
   # Decode the selfie image
   selfie_img = decode_base64_to_image(gif_request.selfie_base64)
-  selfie_img_path = f"/home/administrator/comfyui_api/tmp/{gif_request.request_id}.jpg"
+
+  current_time = datetime.datetime.now()
+  date_string = current_time.strftime("%Y-%m-%d")
+  filename = date_string + str(uuid.uuid4())
+
+#   selfie_img = selfie_img.convert("RGB")
+  selfie_img_path = f"/home/administrator/comfyui_api/tmp/{filename}.png"
   selfie_img.save(selfie_img_path)
 
   # Process the image and generate GIF
-  result_gif_path = await process_image(selfie_img_path, gif_request.request_id)
-  
-  background_tasks.add_task(remove_file, result_gif_path)
+  result_gif_path = await process_image(selfie_img_path, filename)
+  print("result -> ", result_gif_path)
+#   background_tasks.add_task(remove_file, result_gif_path)
   background_tasks.add_task(remove_file, selfie_img_path)
   
-  return FileResponse(result_gif_path, media_type="image/gif")
+  return "http://69.197.164.130:8000/files/" + filename + "_00001.gif"
 
   # except Exception as e:
   #   return {"error": str(e)}
